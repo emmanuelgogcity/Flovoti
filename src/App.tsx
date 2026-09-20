@@ -3,6 +3,9 @@ import "./App.css";
 import Auth from "./Auth";
 import ResetPassword from "./ResetPassword";
 import Dashboard from "./Dashboard";
+import Templates from "./Templates";
+import TemplatePreview from "./TemplatePreview";
+import CustomizeInvitation from "./CustomizeInvitation";
 
 const categories = [
   { name: "Weddings", icon: "💍" },
@@ -83,6 +86,15 @@ function App() {
   }
   if (window.location.pathname === "/dashboard") {
     return <Dashboard />;
+  }
+  if (window.location.pathname === "/templates") {
+    return <Templates />;
+  }
+  if (window.location.pathname === "/template-preview") {
+    return <TemplatePreview />;
+  }
+  if (window.location.pathname === "/customize") {
+    return <CustomizeInvitation />;
   }
   if (showAuth) {
     return <Auth />;
