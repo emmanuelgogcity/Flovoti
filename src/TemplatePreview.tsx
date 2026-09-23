@@ -30,7 +30,7 @@ const templates: Template[] = [
     style: "Luxury",
   },
   {
-    id: 3,
+    id: 5,
     name: "Forever Together",
     category: "Anniversary",
     price: 4500,
@@ -46,7 +46,7 @@ const templates: Template[] = [
     style: "Cute",
   },
   {
-    id: 5,
+    id: 3,
     name: "Next Chapter",
     category: "Graduation",
     price: 4000,
@@ -114,7 +114,7 @@ const templates: Template[] = [
 
 export default function TemplatePreview() {
   const templateId = Number(
-    new URLSearchParams(window.location.search).get("id") || "1"
+    new URLSearchParams(window.location.search).get("template") || "1"
   );
 
   const template = useMemo(
@@ -153,6 +153,16 @@ export default function TemplatePreview() {
           </div>
         </div>
       </header>
+
+      <div className="mx-auto max-w-7xl px-5 pt-6 sm:px-8">
+  <button
+    onClick={() => window.history.back()}
+    className="flex items-center gap-2 text-sm font-semibold text-gray-600 transition hover:text-purple-600"
+  >
+    <span className="text-xl">←</span>
+    Back
+  </button>
+</div>
 
       {/* Main */}
       <main className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14">
@@ -277,12 +287,6 @@ export default function TemplatePreview() {
   Customize This Invitation
 </a>
 
-              <a
-                href="/templates"
-                className="block w-full rounded-full border border-gray-200 bg-white px-6 py-4 text-center font-semibold text-gray-700 transition hover:bg-gray-50"
-              >
-                ← Back to Templates
-              </a>
             </div>
 
             <p className="mt-5 text-center text-xs leading-5 text-gray-400">

@@ -19,7 +19,7 @@ export default function CustomizeInvitation() {
           style: "Luxury",
         },
         {
-          id: 3,
+          id: 5,
           name: "Forever Together",
           category: "Anniversary",
           style: "Romantic",
@@ -31,7 +31,7 @@ export default function CustomizeInvitation() {
           style: "Cute",
         },
         {
-          id: 5,
+          id: 3,
           name: "Next Chapter",
           category: "Graduation",
           style: "Modern",

@@ -19,6 +19,7 @@ const templates: Template[] = [
     featured: true,
     description: "A romantic floral invitation with a soft, elegant feel.",
     style: "Floral",
+    type: "premium",
   },
   {
     id: 2,
@@ -28,14 +29,16 @@ const templates: Template[] = [
     featured: true,
     description: "A stylish birthday design made for memorable celebrations.",
     style: "Luxury",
+    type: "premium",
   },
   {
-    id: 3,
+    id: 5,
     name: "Forever Together",
     category: "Anniversary",
     price: 4500,
     description: "A warm and sophisticated design for celebrating love.",
     style: "Romantic",
+    type: "premium",
   },
   {
     id: 4,
@@ -44,15 +47,17 @@ const templates: Template[] = [
     price: 3500,
     description: "A playful and gentle invitation for a beautiful new arrival.",
     style: "Cute",
+    type: "premium",
   },
   {
-    id: 5,
+    id: 3,
     name: "Next Chapter",
     category: "Graduation",
     price: 4000,
     featured: true,
     description: "A modern design for celebrating an important achievement.",
     style: "Modern",
+    type: "premium",
   },
   {
     id: 6,
@@ -61,6 +66,7 @@ const templates: Template[] = [
     price: 4500,
     description: "A bold invitation for unforgettable parties and events.",
     style: "Elegant",
+    type: "premium",
   },
   {
     id: 7,
@@ -69,6 +75,7 @@ const templates: Template[] = [
     price: 5500,
     description: "A clean and timeless wedding invitation with beautiful details.",
     style: "Minimal",
+    type: "premium",
   },
   {
     id: 8,
@@ -77,6 +84,7 @@ const templates: Template[] = [
     price: 3500,
     description: "A fresh modern invitation for milestone birthdays.",
     style: "Modern",
+    type: "premium",
   },
   {
     id: 9,
@@ -85,6 +93,7 @@ const templates: Template[] = [
     price: 4000,
     description: "A graceful invitation for meaningful religious occasions.",
     style: "Classic",
+    type: "premium",
   },
   {
     id: 10,
@@ -93,6 +102,7 @@ const templates: Template[] = [
     price: 6000,
     description: "A professional invitation for conferences and corporate events.",
     style: "Professional",
+    type: "premium",
   },
   {
     id: 11,
@@ -101,6 +111,7 @@ const templates: Template[] = [
     price: 3500,
     description: "A festive design for special holiday gatherings.",
     style: "Festive",
+    type: "premium",
   },
   {
     id: 12,
@@ -109,6 +120,7 @@ const templates: Template[] = [
     price: 3000,
     description: "A flexible invitation design for any special occasion.",
     style: "Simple",
+    type: "premium",
   },
 ];
 
@@ -182,6 +194,17 @@ export default function Templates() {
         </div>
       </header>
 
+      {/* Back Button */}
+<div className="mx-auto max-w-7xl px-5 pt-6 sm:px-8">
+  <button
+    onClick={() => window.history.back()}
+    className="flex items-center gap-2 text-sm font-semibold text-gray-600 transition hover:text-purple-600"
+  >
+    <span className="text-xl">←</span>
+    Back
+  </button>
+</div>
+
       {/* Hero */}
       <section className="border-b border-gray-100 bg-white">
         <div className="mx-auto max-w-7xl px-5 py-14 text-center sm:px-8 sm:py-20">
@@ -189,15 +212,7 @@ export default function Templates() {
             Beautiful designs for every occasion
           </div>
 
-          <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-            Find the perfect invitation for your special moment.
-          </h1>
-
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-gray-500 sm:text-lg">
-            Choose a professionally designed template, customize it with your
-            details, and create an invitation you're proud to share.
-          </p>
-
+          
           {/* Search */}
           <div className="mx-auto mt-8 max-w-2xl">
             <div className="flex items-center rounded-2xl border border-gray-200 bg-white px-4 shadow-sm focus-within:border-purple-300 focus-within:ring-4 focus-within:ring-purple-50">
@@ -235,14 +250,16 @@ export default function Templates() {
       </section>
 
       {/* Templates */}
-      <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8">
-        <div className="mb-7 flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              {selectedCategory === "All"
-                ? "All Templates"
-                : `${selectedCategory} Templates`}
-            </h2>
+<main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8">
+
+
+<div className="mb-7 flex items-end justify-between gap-4">
+  <div>
+    <h2 className="text-2xl font-bold text-gray-900">
+      {selectedCategory === "All"
+        ? "All Templates"
+        : `${selectedCategory} Templates`}
+    </h2>
 
             <p className="mt-1 text-sm text-gray-500">
               {filteredTemplates.length} design
@@ -265,6 +282,11 @@ export default function Templates() {
                       Featured
                     </div>
                   )}
+                  {template.type === "premium" && (
+  <div className="absolute right-4 top-4 z-10 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
+    👑 PREMIUM
+  </div>
+)}
 
                   <div className="flex h-full items-center justify-center rounded-2xl border border-white/80 bg-white/80 p-5 text-center shadow-inner backdrop-blur">
                     <div>
@@ -312,7 +334,7 @@ export default function Templates() {
                   </p>
 
                   <a
-  href={`/template-preview?id=${template.id}`}
+  href={`/template-preview?template=${template.id}`}
   className="mt-5 block w-full rounded-full bg-purple-600 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-purple-700"
 >
   View Template

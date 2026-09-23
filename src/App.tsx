@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import Auth from "./Auth";
 import ResetPassword from "./ResetPassword";
@@ -6,6 +6,7 @@ import Dashboard from "./Dashboard";
 import Templates from "./Templates";
 import TemplatePreview from "./TemplatePreview";
 import CustomizeInvitation from "./CustomizeInvitation";
+import { supabase } from "./supabase";
 
 const categories = [
   { name: "Weddings", icon: "💍" },
@@ -18,36 +19,42 @@ const categories = [
 
 const templates = [
   {
+    id: 1,
     title: "Elegant Wedding",
     category: "Wedding",
     price: "$8",
     bg: "bg-[#f8edf5]",
   },
   {
+    id: 2,
     title: "Modern Birthday",
     category: "Birthday",
     price: "$5",
     bg: "bg-[#f2edff]",
   },
   {
+    id: 3,
     title: "Classic Graduation",
     category: "Graduation",
     price: "$5",
     bg: "bg-[#f8f4e9]",
   },
   {
+    id: 4,
     title: "Sweet Baby Shower",
     category: "Baby Shower",
     price: "$6",
     bg: "bg-[#edf8f6]",
   },
   {
+    id: 5,
     title: "Forever Together",
     category: "Anniversary",
     price: "$7",
     bg: "bg-[#fff0f3]",
   },
   {
+    id: 6,
     title: "Party Night",
     category: "Party",
     price: "$5",
@@ -64,7 +71,7 @@ const faqs = [
   {
     question: "Do I need a subscription?",
     answer:
-      "No. Flovoti is designed around one-time invitation purchases. You pay once for the invitation you choose.",
+      "No. You can purchase individual premium invitations when you need them. Flovoti also offers an optional subscription for customers who want additional benefits and access.",
   },
   {
     question: "Can I customize my invitation?",
@@ -80,6 +87,23 @@ const faqs = [
 
 function App() {
   const [showAuth, setShowAuth] = useState(false);
+  const [user, setUser] = useState<any>(null);
+const [showUserMenu, setShowUserMenu] = useState(false);
+const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+useEffect(() => {
+  supabase.auth.getUser().then(({ data }) => {
+    setUser(data.user ?? null);
+  });
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setUser(session?.user ?? null);
+  });
+
+  return () => subscription.unsubscribe();
+}, []);
 
   if (window.location.pathname === "/reset-password") {
     return <ResetPassword />;
@@ -103,60 +127,156 @@ function App() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* HEADER */}
-      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-          <a
-            href="#"
-            className="text-2xl font-bold tracking-tight text-purple-600"
-          >
-            Flovoti
-          </a>
+<header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur">
+  <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
+    {/* LOGO */}
+    <a
+      href="/"
+      className="text-2xl font-bold tracking-tight text-purple-600"
+    >
+      Flovoti
+    </a>
 
-          <nav className="hidden items-center gap-8 md:flex">
-            <a
-              href="#templates"
-              className="text-sm font-medium text-gray-600 hover:text-purple-600"
-            >
-              Templates
-            </a>
-            <a
-              href="#how-it-works"
-              className="text-sm font-medium text-gray-600 hover:text-purple-600"
-            >
-              How It Works
-            </a>
-            <a
-              href="#pricing"
-              className="text-sm font-medium text-gray-600 hover:text-purple-600"
-            >
-              Pricing
-            </a>
-            <a
-              href="#faq"
-              className="text-sm font-medium text-gray-600 hover:text-purple-600"
-            >
-              FAQ
-            </a>
-          </nav>
+    {/* DESKTOP NAVIGATION */}
+    <nav className="hidden items-center gap-8 md:flex">
+      <a
+        href="/templates"
+        className="text-sm font-medium text-gray-600 hover:text-purple-600"
+      >
+        Templates
+      </a>
 
-          <div className="flex items-center gap-2">
+      <a
+        href="#how-it-works"
+        className="text-sm font-medium text-gray-600 hover:text-purple-600"
+      >
+        How It Works
+      </a>
+
+      <a
+        href="#pricing"
+        className="text-sm font-medium text-gray-600 hover:text-purple-600"
+      >
+        Pricing
+      </a>
+
+      <a
+        href="#faq"
+        className="text-sm font-medium text-gray-600 hover:text-purple-600"
+      >
+        FAQ
+      </a>
+    </nav>
+
+    {/* RIGHT SIDE */}
+    <div className="relative ml-auto flex items-center gap-2">
+      {!user ? (
+        <>
           <button
-  onClick={() => setShowAuth(true)}
-  className="hidden rounded-full px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:block"
->
-  Sign In
-</button>
+            onClick={() => setShowAuth(true)}
+            className="rounded-full px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            Sign In
+          </button>
 
-<button
-  onClick={() => setShowAuth(true)}
-  className="rounded-full bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-purple-700"
->
-  Get Started
-</button>
-          </div>
-        </div>
-      </header>
+          <button
+            onClick={() => setShowAuth(true)}
+            className="rounded-full bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-purple-700"
+          >
+            Get Started
+          </button>
+        </>
+      ) : (
+        <>
+          {/* MOBILE MENU BUTTON */}
+          <button
+            onClick={() => setShowMobileMenu((value) => !value)}
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-2xl text-gray-700 hover:bg-gray-100 md:hidden"
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
 
+          {/* AVATAR */}
+          <button
+            onClick={() => setShowUserMenu((value) => !value)}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-sm font-bold text-purple-700 hover:bg-purple-200"
+            aria-label="Open account menu"
+          >
+            👤
+          </button>
+
+          {/* ACCOUNT MENU */}
+          {showUserMenu && (
+            <div className="absolute right-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-gray-100 bg-white p-2 shadow-xl">
+              <a
+                href="/dashboard"
+                className="block rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700"
+              >
+                Dashboard
+              </a>
+
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setShowUserMenu(false);
+                  window.location.href = "/";
+                }}
+                className="block w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
+
+          {/* MOBILE NAVIGATION */}
+          {showMobileMenu && (
+            <div className="absolute right-0 top-full z-40 mt-2 w-56 overflow-hidden rounded-2xl border border-gray-100 bg-white p-2 shadow-xl md:hidden">
+              <a
+                href="/templates"
+                onClick={() => setShowMobileMenu(false)}
+                className="block rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700"
+              >
+                Templates
+              </a>
+
+              <a
+                href="#how-it-works"
+                onClick={() => setShowMobileMenu(false)}
+                className="block rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700"
+              >
+                How It Works
+              </a>
+
+              <a
+                href="#pricing"
+                onClick={() => setShowMobileMenu(false)}
+                className="block rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700"
+              >
+                Pricing
+              </a>
+
+              <a
+                href="#faq"
+                onClick={() => setShowMobileMenu(false)}
+                className="block rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700"
+              >
+                FAQ
+              </a>
+
+              <a
+                href="/dashboard"
+                className="block rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700"
+              >
+                Dashboard
+              </a>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  </div>
+</header>
       <main>
         {/* HERO */}
         <section className="bg-[#fffafd]">
@@ -184,7 +304,7 @@ function App() {
                 </button>
 
                 <a
-                  href="#templates"
+                  href="/templates"
                   className="rounded-full border border-gray-200 bg-white px-7 py-3.5 text-center font-semibold text-gray-700 hover:border-purple-200 hover:text-purple-600"
                 >
                   Explore Templates
@@ -319,9 +439,14 @@ function App() {
                 </p>
               </div>
 
-              <button className="self-start rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold hover:border-purple-200 hover:text-purple-600">
-                View All Templates →
-              </button>
+              <button
+  onClick={() => {
+    window.location.href = "/templates";
+  }}
+  className="self-start rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold hover:border-purple-200 hover:text-purple-600"
+>
+  View All Templates →
+</button>
             </div>
 
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -367,9 +492,12 @@ function App() {
                       </p>
                     </div>
 
-                    <button className="mt-4 w-full rounded-full bg-purple-600 px-5 py-3 text-sm font-semibold text-white hover:bg-purple-700">
-                      Preview Template
-                    </button>
+                    <a
+  href={`/template-preview?template=${template.id}`}
+  className="mt-4 block w-full rounded-full bg-purple-600 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-purple-700"
+>
+  Preview Template
+</a>
                   </div>
                 </div>
               ))}
@@ -648,9 +776,14 @@ function App() {
                 <li>✓ Online RSVP</li>
               </ul>
 
-              <button className="mt-8 w-full rounded-full bg-purple-600 px-6 py-3.5 font-semibold text-white hover:bg-purple-700">
-                Browse Templates
-              </button>
+              <button
+  onClick={() => {
+    window.location.href = "/templates";
+  }}
+  className="mt-8 w-full rounded-full bg-purple-600 px-6 py-3.5 font-semibold text-white hover:bg-purple-700"
+>
+  Browse Templates
+</button>
             </div>
           </div>
         </section>
@@ -694,7 +827,7 @@ function App() {
           <div className="grid gap-10 md:grid-cols-4">
             <div className="md:col-span-2">
               <a
-                href="#"
+                href="/"
                 className="text-2xl font-bold tracking-tight text-purple-600"
               >
                 Flovoti
