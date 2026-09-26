@@ -3,6 +3,7 @@ import "./App.css";
 import Auth from "./Auth";
 import ResetPassword from "./ResetPassword";
 import Dashboard from "./Dashboard";
+import AdminDashboard from "./AdminDashboard";
 import Templates from "./Templates";
 import TemplatePreview from "./TemplatePreview";
 import CustomizeInvitation from "./CustomizeInvitation";
@@ -107,6 +108,9 @@ useEffect(() => {
 
   if (window.location.pathname === "/reset-password") {
     return <ResetPassword />;
+  }
+  if (window.location.pathname === "/admin") {
+    return <AdminDashboard />;
   }
   if (window.location.pathname === "/dashboard") {
     return <Dashboard />;

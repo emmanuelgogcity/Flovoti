@@ -43,15 +43,29 @@ export default function Auth() {
           );
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-
+        
         if (error) {
           setMessage(error.message);
         } else {
-          window.location.href = "/";
+          const userId = data.user.id;
+        
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", userId)
+            .single();
+        
+          if (profileError) {
+            setMessage("Could not load your account profile.");
+          } else if (profile?.role === "admin") {
+            window.location.href = "/admin";
+          } else {
+            window.location.href = "/";
+          }
         }
       }
     } catch {
