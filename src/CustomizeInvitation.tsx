@@ -86,16 +86,157 @@ export default function CustomizeInvitation() {
           templates[0],
         [templateId]
       );
-  const [eventTitle, setEventTitle] = useState("You're Invited");
-  const [hostName, setHostName] = useState("Chris & Family");
-  const [eventDate, setEventDate] = useState("");
-  const [eventTime, setEventTime] = useState("");
-  const [venue, setVenue] = useState("Beautiful Event Venue");
-  const [address, setAddress] = useState("Lagos, Nigeria");
-  const [message, setMessage] = useState(
-    "We would love for you to join us and celebrate this special moment."
-  );
-  const [rsvpContact, setRsvpContact] = useState("");
+      const templateTheme = useMemo(() => {
+        switch (template.style) {
+          case "Luxury":
+            return {
+              background: "bg-gradient-to-br from-amber-50 via-white to-yellow-50",
+              accent: "text-amber-600",
+              border: "border-amber-200",
+              soft: "bg-amber-50",
+            };
+      
+          case "Romantic":
+            return {
+              background: "bg-gradient-to-br from-pink-50 via-white to-rose-50",
+              accent: "text-rose-500",
+              border: "border-rose-200",
+              soft: "bg-rose-50",
+            };
+      
+          case "Cute":
+            return {
+              background: "bg-gradient-to-br from-pink-50 via-white to-purple-50",
+              accent: "text-pink-500",
+              border: "border-pink-200",
+              soft: "bg-pink-50",
+            };
+      
+          case "Modern":
+            return {
+              background: "bg-gradient-to-br from-gray-50 via-white to-purple-50",
+              accent: "text-purple-600",
+              border: "border-purple-200",
+              soft: "bg-purple-50",
+            };
+      
+          case "Professional":
+            return {
+              background: "bg-gradient-to-br from-slate-50 via-white to-blue-50",
+              accent: "text-blue-600",
+              border: "border-blue-200",
+              soft: "bg-blue-50",
+            };
+      
+          case "Festive":
+            return {
+              background: "bg-gradient-to-br from-purple-50 via-white to-pink-50",
+              accent: "text-purple-600",
+              border: "border-purple-200",
+              soft: "bg-purple-50",
+            };
+      
+            default:
+              return {
+                background: "bg-gradient-to-br from-purple-100 via-white to-rose-50",
+                accent: "text-purple-700",
+                border: "border-purple-300",
+                soft: "bg-purple-100",
+              };
+        }
+      }, [template.style]);
+      const defaultContent = useMemo(() => {
+        switch (template.category) {
+          case "Wedding":
+            return {
+              eventTitle: "We're Getting Married",
+              hostName: "Chris & Family",
+              message:
+                "We would love for you to join us as we celebrate our special day.",
+            };
+      
+          case "Birthday":
+            return {
+              eventTitle: "You're Invited to My Birthday",
+              hostName: "Chris",
+              message:
+                "Come celebrate another wonderful year with me and make unforgettable memories together.",
+            };
+      
+          case "Graduation":
+            return {
+              eventTitle: "Join Us for the Graduation Celebration",
+              hostName: "Chris & Family",
+              message:
+                "Please join us as we celebrate this special achievement and the beginning of a new chapter.",
+            };
+      
+          case "Baby Shower":
+            return {
+              eventTitle: "A Little One Is on the Way",
+              hostName: "Chris & Family",
+              message:
+                "Join us as we celebrate the upcoming arrival of our little one.",
+            };
+      
+          case "Anniversary":
+            return {
+              eventTitle: "Celebrating Our Love",
+              hostName: "Chris & Family",
+              message:
+                "Come celebrate another beautiful year of love, memories, and togetherness with us.",
+            };
+      
+          case "Party":
+            return {
+              eventTitle: "You're Invited to the Party",
+              hostName: "Chris",
+              message:
+                "Get ready for a fun-filled celebration with great people, music, and unforgettable moments.",
+            };
+      
+          case "Religious":
+            return {
+              eventTitle: "You Are Invited",
+              hostName: "Chris & Family",
+              message:
+                "Join us as we gather together in faith, gratitude, and celebration.",
+            };
+      
+          case "Corporate":
+            return {
+              eventTitle: "You're Invited",
+              hostName: "Flovoti",
+              message:
+                "We are pleased to invite you to this special professional gathering.",
+            };
+      
+          case "Holiday":
+            return {
+              eventTitle: "Season's Greetings",
+              hostName: "Chris & Family",
+              message:
+                "Join us as we celebrate the season with joy, warmth, and wonderful memories.",
+            };
+      
+          default:
+            return {
+              eventTitle: "You're Invited",
+              hostName: "Chris & Family",
+              message:
+                "We would love for you to join us and celebrate this special moment.",
+            };
+        }
+      }, [template.category]);
+      
+      const [eventTitle, setEventTitle] = useState(defaultContent.eventTitle);
+      const [hostName, setHostName] = useState(defaultContent.hostName);
+      const [eventDate, setEventDate] = useState("");
+      const [eventTime, setEventTime] = useState("");
+      const [venue, setVenue] = useState("Beautiful Event Venue");
+      const [address, setAddress] = useState("Lagos, Nigeria");
+      const [message, setMessage] = useState(defaultContent.message);
+      const [rsvpContact, setRsvpContact] = useState("");
 
   return (
     <div className="min-h-screen bg-[#fffafd]">
@@ -109,14 +250,18 @@ export default function CustomizeInvitation() {
             Flovoti
           </a>
 
-          <a
-            href="/templates"
-            className="rounded-full px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50"
-          >
-            ← Templates
-          </a>
         </div>
       </header>
+
+      <div className="mx-auto max-w-7xl px-5 pt-6 sm:px-8">
+  <button
+    onClick={() => window.history.back()}
+    className="flex items-center gap-2 text-sm font-semibold text-gray-600 transition hover:text-purple-600"
+  >
+    <span className="text-xl">←</span>
+    Back
+  </button>
+</div>
 
       {/* Page heading */}
       <section className="border-b border-gray-100 bg-white">
@@ -159,7 +304,27 @@ export default function CustomizeInvitation() {
                   type="text"
                   value={eventTitle}
                   onChange={(event) => setEventTitle(event.target.value)}
-                  placeholder="e.g. Our Wedding"
+                  placeholder={`e.g. ${
+                    template.category === "Wedding"
+                      ? "Our Wedding"
+                      : template.category === "Birthday"
+                        ? "My Birthday Celebration"
+                        : template.category === "Graduation"
+                          ? "My Graduation"
+                          : template.category === "Baby Shower"
+                            ? "Baby Shower Celebration"
+                            : template.category === "Anniversary"
+                              ? "Our Anniversary"
+                              : template.category === "Party"
+                                ? "Birthday Party"
+                                : template.category === "Religious"
+                                  ? "Thanksgiving Service"
+                                  : template.category === "Corporate"
+                                    ? "Annual Business Meeting"
+                                    : template.category === "Holiday"
+                                      ? "Christmas Celebration"
+                                      : "Special Celebration"
+                  }`}
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none transition focus:border-purple-400 focus:ring-4 focus:ring-purple-50"
                 />
               </div>
@@ -296,10 +461,125 @@ export default function CustomizeInvitation() {
             </div>
 
             <div className="rounded-[2rem] border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-purple-50 via-pink-50 to-white p-6 sm:p-10">
-                <div className="flex h-full items-center justify-center rounded-2xl border border-white/80 bg-white/85 p-7 text-center shadow-inner backdrop-blur sm:p-10">
+            <div className={`relative min-h-[620px] rounded-[1.5rem] ${templateTheme.background} p-6 sm:p-10`}>
+            
+                <div className="relative flex min-h-[540px] items-center justify-center overflow-hidden rounded-[3rem] border border-amber-500/60 bg-white p-8 text-center shadow-inner sm:p-12">
+                {template.name === "Elegant Bloom" && (
+  <svg
+    className="pointer-events-none absolute inset-0 h-full w-full"
+    viewBox="0 0 600 760"
+    preserveAspectRatio="none"
+    aria-hidden="true"
+  >
+    <defs>
+      <radialGradient id="roseGold" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stopColor="#fff1c7" />
+        <stop offset="35%" stopColor="#d6a84f" />
+        <stop offset="70%" stopColor="#9a6a20" />
+        <stop offset="100%" stopColor="#5f3b0c" />
+      </radialGradient>
+
+      <radialGradient id="roseShadow" cx="45%" cy="35%" r="65%">
+        <stop offset="0%" stopColor="#f7d98b" />
+        <stop offset="45%" stopColor="#b7832f" />
+        <stop offset="100%" stopColor="#6d4512" />
+      </radialGradient>
+
+      <linearGradient id="leafGold" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#ead28c" />
+        <stop offset="45%" stopColor="#a87927" />
+        <stop offset="100%" stopColor="#56360d" />
+      </linearGradient>
+
+      <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow
+          dx="0"
+          dy="5"
+          stdDeviation="5"
+          floodColor="#6b4515"
+          floodOpacity="0.25"
+        />
+      </filter>
+    </defs>
+
+    {/* Left large rose */}
+    <g filter="url(#softShadow)">
+      <circle cx="82" cy="470" r="43" fill="url(#roseGold)" />
+      <ellipse cx="82" cy="445" rx="30" ry="17" fill="url(#roseShadow)" />
+      <ellipse cx="59" cy="465" rx="18" ry="31" fill="url(#roseShadow)" />
+      <ellipse cx="105" cy="465" rx="18" ry="31" fill="url(#roseShadow)" />
+      <ellipse cx="82" cy="492" rx="30" ry="17" fill="url(#roseShadow)" />
+      <ellipse cx="82" cy="470" rx="18" ry="23" fill="url(#roseGold)" />
+      <circle cx="82" cy="470" r="9" fill="#6b4312" />
+    </g>
+
+    {/* Left middle rose */}
+    <g filter="url(#softShadow)">
+      <circle cx="55" cy="555" r="32" fill="url(#roseGold)" />
+      <ellipse cx="55" cy="536" rx="23" ry="13" fill="url(#roseShadow)" />
+      <ellipse cx="38" cy="553" rx="13" ry="22" fill="url(#roseShadow)" />
+      <ellipse cx="72" cy="553" rx="13" ry="22" fill="url(#roseShadow)" />
+      <ellipse cx="55" cy="574" rx="23" ry="13" fill="url(#roseShadow)" />
+      <circle cx="55" cy="555" r="7" fill="#68400f" />
+    </g>
+
+    {/* Right large rose */}
+    <g filter="url(#softShadow)">
+      <circle cx="518" cy="470" r="43" fill="url(#roseGold)" />
+      <ellipse cx="518" cy="445" rx="30" ry="17" fill="url(#roseShadow)" />
+      <ellipse cx="495" cy="465" rx="18" ry="31" fill="url(#roseShadow)" />
+      <ellipse cx="541" cy="465" rx="18" ry="31" fill="url(#roseShadow)" />
+      <ellipse cx="518" cy="492" rx="30" ry="17" fill="url(#roseShadow)" />
+      <ellipse cx="518" cy="470" rx="18" ry="23" fill="url(#roseGold)" />
+      <circle cx="518" cy="470" r="9" fill="#6b4312" />
+    </g>
+
+    {/* Right middle rose */}
+    <g filter="url(#softShadow)">
+      <circle cx="545" cy="555" r="32" fill="url(#roseGold)" />
+      <ellipse cx="545" cy="536" rx="23" ry="13" fill="url(#roseShadow)" />
+      <ellipse cx="528" cy="553" rx="13" ry="22" fill="url(#roseShadow)" />
+      <ellipse cx="562" cy="553" rx="13" ry="22" fill="url(#roseShadow)" />
+      <ellipse cx="545" cy="574" rx="23" ry="13" fill="url(#roseShadow)" />
+      <circle cx="545" cy="555" r="7" fill="#68400f" />
+    </g>
+
+    {/* Bottom center roses */}
+    <g filter="url(#softShadow)">
+      <circle cx="180" cy="700" r="38" fill="url(#roseGold)" />
+      <circle cx="300" cy="720" r="46" fill="url(#roseGold)" />
+      <circle cx="420" cy="700" r="38" fill="url(#roseGold)" />
+    </g>
+
+    {/* Metallic leaves */}
+    <g fill="url(#leafGold)" opacity="0.95">
+      <ellipse cx="125" cy="535" rx="13" ry="34" transform="rotate(-48 125 535)" />
+      <ellipse cx="105" cy="585" rx="12" ry="31" transform="rotate(-65 105 585)" />
+      <ellipse cx="475" cy="535" rx="13" ry="34" transform="rotate(48 475 535)" />
+      <ellipse cx="495" cy="585" rx="12" ry="31" transform="rotate(65 495 585)" />
+      <ellipse cx="230" cy="690" rx="13" ry="35" transform="rotate(-55 230 690)" />
+      <ellipse cx="370" cy="690" rx="13" ry="35" transform="rotate(55 370 690)" />
+    </g>
+
+    {/* Fine botanical line work */}
+    <g
+      fill="none"
+      stroke="#b38a3b"
+      strokeWidth="1.5"
+      opacity="0.35"
+    >
+      <path d="M55 650 C105 600 115 545 135 500" />
+      <path d="M545 650 C495 600 485 545 465 500" />
+      <path d="M130 650 C175 610 190 570 195 525" />
+      <path d="M470 650 C425 610 410 570 405 525" />
+    </g>
+  </svg>
+)}
+                <div className="pointer-events-none absolute inset-x-8 top-8 bottom-8 rounded-t-[10rem] rounded-b-[2rem] border-2 border-amber-600/50" />
+
+<div className="pointer-events-none absolute inset-x-11 top-11 bottom-11 rounded-t-[9rem] rounded-b-[1.5rem] border border-amber-300/70" />
                   <div className="w-full max-w-md">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-purple-500">
+                  <p className={`text-xs font-semibold uppercase tracking-[0.25em] ${templateTheme.accent}`}>
   {template.name}
 </p>
 
@@ -307,7 +587,7 @@ export default function CustomizeInvitation() {
                       {eventTitle || "Your Event"}
                     </h3>
 
-                    <div className="mx-auto my-5 h-px w-16 bg-purple-200" />
+                    <div className={`mx-auto my-5 h-px w-16 ${templateTheme.border}`} />
 
                     <p className="text-lg font-semibold text-gray-800">
                       {hostName || "Your Name"}
@@ -349,8 +629,8 @@ export default function CustomizeInvitation() {
                       <p>{address || "Your event address"}</p>
                     </div>
 
-                    {rsvpContact && (
-                      <div className="mt-7 rounded-xl bg-purple-50 px-4 py-3">
+                    {rsvpContact.trim() !== "" && (
+  <div className="mt-7 rounded-xl bg-purple-50 px-4 py-3">
                         <p className="text-xs font-semibold uppercase tracking-wide text-purple-600">
                           RSVP
                         </p>
