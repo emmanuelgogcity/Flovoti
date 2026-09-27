@@ -40,11 +40,15 @@ export default function AdminDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [showTemplateForm, setShowTemplateForm] = useState(false);
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
 
   const [newTemplate, setNewTemplate] = useState({
     title: "",
     category: "Wedding",
+    description: "",
     price: "",
+    is_premium: true,
+    image_url: "",
   });
 
   const [adminName, setAdminName] = useState("Flovoti Admin");
@@ -73,54 +77,191 @@ export default function AdminDashboard() {
 
       if (profile.full_name) {
         setAdminName(profile.full_name);
+
+      const { data: templateData, error: templateError } = await supabase
+        .from("templates")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (templateError) {
+        console.error("Error loading templates:", templateError);
+      } else {
+        setTemplates(templateData || []);
+      }
       }
     };
 
     loadAdminProfile();
   }, []);
 
-  const addTemplate = () => {
+  const addTemplate = async () => {
     if (!newTemplate.title.trim() || !newTemplate.price.trim()) {
       return;
     }
-
-    const template: Template = {
-      id: Date.now(),
-      title: newTemplate.title.trim(),
-      category: newTemplate.category,
-      price: newTemplate.price.trim(),
-      status: "Draft",
-    };
-
-    setTemplates((current) => [...current, template]);
-
+  
+    const price = Number(newTemplate.price);
+  
+    if (Number.isNaN(price) || price < 0) {
+      return;
+    }
+  
+    const { data, error } = await supabase
+      .from("templates")
+      .insert({
+        title: newTemplate.title.trim(),
+        category: newTemplate.category,
+        description: newTemplate.description.trim() || null,
+        price,
+        is_premium: newTemplate.is_premium,
+        status: "active",
+        image_url: newTemplate.image_url.trim() || null,
+      })
+      .select()
+      .single();
+  
+    if (error) {
+      console.error("Error creating template:", error);
+      alert(`Could not create template: ${error.message}`);
+      return;
+    }
+  
+    setTemplates((current) => [...current, data]);
+  
     setNewTemplate({
       title: "",
       category: "Wedding",
+      description: "",
       price: "",
+      is_premium: true,
+      image_url: "",
     });
-
+  
     setShowTemplateForm(false);
   };
-
-  const deleteTemplate = (id: number) => {
+  const startEditingTemplate = (template: Template) => {
+    setEditingTemplateId(template.id);
+  
+    setNewTemplate({
+      title: template.title,
+      category: template.category,
+      description: template.description || "",
+      price: String(template.price),
+      is_premium: template.is_premium,
+      image_url: template.image_url || "",
+    });
+  
+    setShowTemplateForm(true);
+  };
+  const deleteTemplate = async (id: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this template?"
+    );
+  
+    if (!confirmed) {
+      return;
+    }
+  
+    const { error } = await supabase
+      .from("templates")
+      .delete()
+      .eq("id", id);
+  
+    if (error) {
+      console.error("Error deleting template:", error);
+      alert(`Could not delete template: ${error.message}`);
+      return;
+    }
+  
     setTemplates((current) =>
       current.filter((template) => template.id !== id)
     );
   };
-
-  const toggleTemplateStatus = (id: number) => {
+  
+  const toggleTemplateStatus = async (id: string) => {
+    const template = templates.find((item) => item.id === id);
+  
+    if (!template) {
+      return;
+    }
+  
+    const newStatus = template.status === "active" ? "draft" : "active";
+  
+    const { data, error } = await supabase
+      .from("templates")
+      .update({
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+  
+    if (error) {
+      console.error("Error updating template status:", error);
+      alert(`Could not update template status: ${error.message}`);
+      return;
+    }
+  
     setTemplates((current) =>
-      current.map((template) =>
-        template.id === id
-          ? {
-              ...template,
-              status:
-                template.status === "Active" ? "Draft" : "Active",
-            }
-          : template
+      current.map((item) =>
+        item.id === id ? data : item
       )
     );
+  };
+  const updateTemplate = async () => {
+    if (!editingTemplateId) {
+      return;
+    }
+  
+    if (!newTemplate.title.trim() || !newTemplate.price.trim()) {
+      return;
+    }
+  
+    const price = Number(newTemplate.price);
+  
+    if (Number.isNaN(price) || price < 0) {
+      return;
+    }
+  
+    const { data, error } = await supabase
+      .from("templates")
+      .update({
+        title: newTemplate.title.trim(),
+        category: newTemplate.category,
+        description: newTemplate.description.trim() || null,
+        price,
+        is_premium: newTemplate.is_premium,
+        image_url: newTemplate.image_url.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", editingTemplateId)
+      .select()
+      .single();
+  
+    if (error) {
+      console.error("Error updating template:", error);
+      alert(`Could not update template: ${error.message}`);
+      return;
+    }
+  
+    setTemplates((current) =>
+      current.map((template) =>
+        template.id === editingTemplateId ? data : template
+      )
+    );
+  
+    setEditingTemplateId(null);
+  
+    setNewTemplate({
+      title: "",
+      category: "Wedding",
+      description: "",
+      price: "",
+      is_premium: true,
+      image_url: "",
+    });
+  
+    setShowTemplateForm(false);
   };
 
   const signOut = async () => {
@@ -310,7 +451,20 @@ export default function AdminDashboard() {
         </div>
 
         <button
-          onClick={() => setShowTemplateForm(true)}
+          onClick={() => {
+            setEditingTemplateId(null);
+          
+            setNewTemplate({
+              title: "",
+              category: "Wedding",
+              description: "",
+              price: "",
+              is_premium: true,
+              image_url: "",
+            });
+          
+            setShowTemplateForm(true);
+          }}
           className="rounded-full bg-purple-600 px-6 py-3 font-semibold text-white hover:bg-purple-700"
         >
           + Add Template
@@ -319,74 +473,84 @@ export default function AdminDashboard() {
 
       {showTemplateForm && (
         <div className="rounded-3xl border border-purple-100 bg-purple-50 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">
-                Add New Template
-              </h2>
-
-              <p className="mt-1 text-sm text-gray-500">
-                Create a template from the admin dashboard.
-              </p>
-            </div>
-
-            <button
-              onClick={() => setShowTemplateForm(false)}
-              className="text-gray-500 hover:text-gray-900"
-            >
-              ✕
-            </button>
+        <div className="flex items-center justify-between">
+          <div>
+          <h2 className="text-lg font-bold text-gray-900">
+  {editingTemplateId ? "Edit Template" : "Add New Template"}
+</h2>
+      
+<p className="mt-1 text-sm text-gray-500">
+  {editingTemplateId
+    ? "Update the template, price, and access settings."
+    : "Create a template and control its price and access."}
+</p>
           </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div>
-              <label className="mb-2 block text-sm font-semibold">
-                Template name
-              </label>
-
+      
+          <button
+            onClick={() => setShowTemplateForm(false)}
+            className="text-gray-500 hover:text-gray-900"
+          >
+            ✕
+          </button>
+        </div>
+      
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-semibold">
+              Template name
+            </label>
+      
+            <input
+              value={newTemplate.title}
+              onChange={(event) =>
+                setNewTemplate({
+                  ...newTemplate,
+                  title: event.target.value,
+                })
+              }
+              placeholder="Example: Royal Wedding"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-purple-400"
+            />
+          </div>
+      
+          <div>
+            <label className="mb-2 block text-sm font-semibold">
+              Category
+            </label>
+      
+            <select
+              value={newTemplate.category}
+              onChange={(event) =>
+                setNewTemplate({
+                  ...newTemplate,
+                  category: event.target.value,
+                })
+              }
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-purple-400"
+            >
+              <option>Wedding</option>
+              <option>Birthday</option>
+              <option>Graduation</option>
+              <option>Baby Shower</option>
+              <option>Anniversary</option>
+              <option>Party</option>
+            </select>
+          </div>
+      
+          <div>
+            <label className="mb-2 block text-sm font-semibold">
+              Price
+            </label>
+      
+            <div className="flex items-center rounded-xl border border-gray-200 bg-white">
+              <span className="px-4 text-sm font-semibold text-gray-500">
+                $
+              </span>
+      
               <input
-                value={newTemplate.title}
-                onChange={(event) =>
-                  setNewTemplate({
-                    ...newTemplate,
-                    title: event.target.value,
-                  })
-                }
-                placeholder="Example: Royal Wedding"
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-purple-400"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-semibold">
-                Category
-              </label>
-
-              <select
-                value={newTemplate.category}
-                onChange={(event) =>
-                  setNewTemplate({
-                    ...newTemplate,
-                    category: event.target.value,
-                  })
-                }
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-purple-400"
-              >
-                <option>Wedding</option>
-                <option>Birthday</option>
-                <option>Graduation</option>
-                <option>Baby Shower</option>
-                <option>Anniversary</option>
-                <option>Party</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-semibold">
-                Price
-              </label>
-
-              <input
+                type="number"
+                min="0"
+                step="0.01"
                 value={newTemplate.price}
                 onChange={(event) =>
                   setNewTemplate({
@@ -394,102 +558,231 @@ export default function AdminDashboard() {
                     price: event.target.value,
                   })
                 }
-                placeholder="$5"
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-purple-400"
+                placeholder="8.00"
+                className="w-full rounded-xl px-2 py-3 outline-none"
               />
             </div>
+      
+            <p className="mt-1 text-xs text-gray-500">
+              Set the base price for this template.
+            </p>
           </div>
-
-          <div className="mt-5 flex gap-3">
+      
+          <div>
+            <label className="mb-2 block text-sm font-semibold">
+              Template type
+            </label>
+      
             <button
-              onClick={addTemplate}
-              className="rounded-full bg-purple-600 px-6 py-3 font-semibold text-white hover:bg-purple-700"
+              type="button"
+              onClick={() =>
+                setNewTemplate({
+                  ...newTemplate,
+                  is_premium: !newTemplate.is_premium,
+                })
+              }
+              className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
+                newTemplate.is_premium
+                  ? "border-purple-200 bg-white"
+                  : "border-gray-200 bg-white"
+              }`}
             >
-              Create Template
+              <div>
+                <p className="font-semibold text-gray-800">
+                  {newTemplate.is_premium
+                    ? "👑 Premium Template"
+                    : "🆓 Free Template"}
+                </p>
+      
+                <p className="mt-1 text-xs text-gray-500">
+                  {newTemplate.is_premium
+                    ? "Customers must pay to use this template."
+                    : "Customers can use this template for free."}
+                </p>
+              </div>
+      
+              <div
+                className={`flex h-6 w-11 items-center rounded-full p-1 transition ${
+                  newTemplate.is_premium
+                    ? "bg-purple-600"
+                    : "bg-gray-300"
+                }`}
+              >
+                <div
+                  className={`h-4 w-4 rounded-full bg-white transition ${
+                    newTemplate.is_premium ? "translate-x-5" : ""
+                  }`}
+                />
+              </div>
             </button>
-
-            <button
-              onClick={() => setShowTemplateForm(false)}
-              className="rounded-full border border-gray-200 bg-white px-6 py-3 font-semibold text-gray-700"
-            >
-              Cancel
-            </button>
+          </div>
+      
+          <div className="md:col-span-2">
+            <label className="mb-2 block text-sm font-semibold">
+              Description
+            </label>
+      
+            <textarea
+              rows={3}
+              value={newTemplate.description}
+              onChange={(event) =>
+                setNewTemplate({
+                  ...newTemplate,
+                  description: event.target.value,
+                })
+              }
+              placeholder="Describe this invitation template..."
+              className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-purple-400"
+            />
+          </div>
+      
+          <div className="md:col-span-2">
+            <label className="mb-2 block text-sm font-semibold">
+              Template image URL
+            </label>
+      
+            <input
+              type="url"
+              value={newTemplate.image_url}
+              onChange={(event) =>
+                setNewTemplate({
+                  ...newTemplate,
+                  image_url: event.target.value,
+                })
+              }
+              placeholder="https://example.com/template-image.jpg"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-purple-400"
+            />
+      
+            <p className="mt-1 text-xs text-gray-500">
+              We'll add direct image uploading later.
+            </p>
           </div>
         </div>
+      
+        <div className="mt-6 flex flex-wrap gap-3">
+        <button
+  onClick={editingTemplateId ? updateTemplate : addTemplate}
+  className="rounded-full bg-purple-600 px-6 py-3 font-semibold text-white hover:bg-purple-700"
+>
+  {editingTemplateId ? "Save Changes" : "Create Template"}
+</button>
+      
+          <button
+            onClick={() => setShowTemplateForm(false)}
+            className="rounded-full border border-gray-200 bg-white px-6 py-3 font-semibold text-gray-700"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
       )}
 
       <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px]">
-            <thead className="border-b border-gray-100 bg-gray-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Template
-                </th>
+          <thead className="border-b border-gray-100 bg-gray-50">
+  <tr>
+    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
+      Template
+    </th>
 
-                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Category
-                </th>
+    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
+      Category
+    </th>
 
-                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Price
-                </th>
+    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
+      Type
+    </th>
 
-                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Status
-                </th>
+    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
+      Price
+    </th>
 
-                <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Actions
-                </th>
-              </tr>
-            </thead>
+    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
+      Status
+    </th>
+
+    <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
+      Actions
+    </th>
+  </tr>
+</thead>
 
             <tbody className="divide-y divide-gray-100">
-              {templates.map((template) => (
-                <tr key={template.id}>
-                  <td className="px-6 py-5">
-                    <p className="font-semibold text-gray-900">
-                      {template.title}
-                    </p>
+  {templates.map((template) => (
+    <tr key={template.id}>
+      {/* Template */}
+      <td className="px-6 py-5">
+        <p className="font-semibold text-gray-900">
+          {template.title}
+        </p>
 
-                    <p className="mt-1 text-xs text-gray-400">
-                      ID #{template.id}
-                    </p>
-                  </td>
+        <p className="mt-1 text-xs text-gray-400">
+          ID #{template.id}
+        </p>
+      </td>
 
-                  <td className="px-6 py-5 text-sm text-gray-600">
-                    {template.category}
-                  </td>
+      {/* Category */}
+      <td className="px-6 py-5 text-sm text-gray-600">
+        {template.category}
+      </td>
 
-                  <td className="px-6 py-5 font-semibold text-purple-600">
-                    {template.price}
-                  </td>
+      {/* Type */}
+      <td className="px-6 py-5">
+        {template.is_premium ? (
+          <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-bold text-purple-700">
+            👑 Premium
+          </span>
+        ) : (
+          <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">
+            🆓 Free
+          </span>
+        )}
+      </td>
 
-                  <td className="px-6 py-5">
-                    <button
-                      onClick={() => toggleTemplateStatus(template.id)}
-                      className={`rounded-full px-3 py-1 text-xs font-bold ${
-                        template.status === "Active"
-                          ? "bg-green-50 text-green-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {template.status}
-                    </button>
-                  </td>
+      {/* Price */}
+      <td className="px-6 py-5 font-semibold text-purple-600">
+        {template.is_premium
+          ? `$${Number(template.price).toFixed(2)}`
+          : "Free"}
+      </td>
 
-                  <td className="px-6 py-5 text-right">
-                    <button
-                      onClick={() => deleteTemplate(template.id)}
-                      className="text-sm font-semibold text-red-600 hover:text-red-700"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+      {/* Status */}
+      <td className="px-6 py-5">
+        <button
+          onClick={() => toggleTemplateStatus(template.id)}
+          className={`rounded-full px-3 py-1 text-xs font-bold ${
+            template.status === "active"
+              ? "bg-green-50 text-green-700"
+              : "bg-gray-100 text-gray-600"
+          }`}
+        >
+          {template.status === "active" ? "Active" : "Draft"}
+        </button>
+      </td>
+
+      {/* Actions */}
+      <td className="px-6 py-5 text-right">
+        <div className="flex items-center justify-end gap-4">
+          <button
+            onClick={() => startEditingTemplate(template)}
+            className="text-sm font-semibold text-purple-600 hover:text-purple-700"
+          >
+            Edit
+          </button>
+
+          <button
+            onClick={() => deleteTemplate(template.id)}
+            className="text-sm font-semibold text-red-600 hover:text-red-700"
+          >
+            Delete
+          </button>
+        </div>
+      </td>
+    </tr>
+  ))}
+</tbody>
           </table>
         </div>
       </div>
